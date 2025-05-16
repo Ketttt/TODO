@@ -25,6 +25,8 @@ final class APIClient: APIClientProtocol {
             completion(.failure(NetworkError.noInternetConnection))
             return
         }
-        networkService.request(endpoint: TodoEndpoint.fetchTodos, completion: completion)
+        networkService.request(endpoint: TodoEndpoint.fetchTodos) { result in
+            completion(result)
+        }
     }
 }

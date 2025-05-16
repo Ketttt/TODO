@@ -33,9 +33,12 @@ extension CoreDataManager: CoreDataManagerProtocol {
     
     func saveTodos(_ todo: [Todo], completion: @escaping(Result<Void, CoreDataError>) -> ()) {
         context.perform {
+            guard let entity = NSEntityDescription.entity(forEntityName: "TodoEntity", in: self.context) else {
+                return
+            }
             do {
                 for todo in todo {
-                    let todoEntity = TodoEntity(context: self.context)
+                    let todoEntity = TodoEntity(entity: entity, insertInto: self.context)
                     todoEntity.id = Int64(todo.id)
                     todoEntity.todoTitle = todo.todo
                     todoEntity.body = todo.body
@@ -133,10 +136,12 @@ extension CoreDataManager: CoreDataManagerProtocol {
     
     func addTodo(title: String?, body: String?, completion: @escaping(Result<Todo, CoreDataError>) -> ()) {
         context.perform {
+            guard let entity = NSEntityDescription.entity(forEntityName: "TodoEntity", in: self.context) else {
+                return
+            }
             
-            let todo = TodoEntity(context: self.context)
-            let newID = self.generateSafeUniqueID()
-            todo.id = newID
+            let todo = TodoEntity(entity: entity, insertInto: self.context)
+            todo.id = self.generateSafeUniqueID()
             todo.todoTitle = title
             todo.body = body
             todo.completed = false
@@ -155,6 +160,7 @@ extension CoreDataManager: CoreDataManagerProtocol {
                     completion(.success(savedTodo))
                 }
             } catch {
+                self.context.rollback()
                 DispatchQueue.main.async {
                     completion(.failure(.addFailed(error)))
                 }
@@ -196,18 +202,18 @@ extension CoreDataManager: CoreDataManagerProtocol {
     
     func searchTodo(with searchText: String, completion: @escaping(Result<[Todo], CoreDataError>) -> ()) {
         
-        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            DispatchQueue.main.async {
-                completion(.success([]))
+        let trimmedText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmedText.isEmpty else {
+                DispatchQueue.main.async {
+                    completion(.success([]))
+                }
+                return
             }
-            return
-        }
         
         context.perform {
-            
             let fetchRequest: NSFetchRequest<TodoEntity> = TodoEntity.fetchRequest()
-            let predicate1 = NSPredicate(format: "todoTitle CONTAINS %@", searchText)
-            let predicate2 = NSPredicate(format: "body CONTAINS %@", searchText)
+            let predicate1 = NSPredicate(format: "todoTitle CONTAINS[c] %@", trimmedText)
+            let predicate2 = NSPredicate(format: "body CONTAINS[c] %@", trimmedText)
             
             fetchRequest.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [predicate1, predicate2])
             
@@ -238,7 +244,6 @@ extension CoreDataManager: CoreDataManagerProtocol {
         }
     }
 }
-
 
 private extension CoreDataManager {
     func generateSafeUniqueID() -> Int64 {

@@ -29,11 +29,23 @@ final class TodoListInteractor {
 extension TodoListInteractor: ITodoListInteractor {
     
     func fetchTodoList(completion: @escaping (Result<[Todo], AppError>) -> Void) {
-        if NetworkMonitor.shared.hasInternetConnection() && UserDefaults.standard.isFirstLaunch {
-            fetchFromNetwork(completion: completion)
-            UserDefaults.standard.isFirstLaunch = false
+        let hasInternet = NetworkMonitor.shared.hasInternetConnection()
+        let isFirstLaunch = UserDefaults.standard.isFirstLaunch
+
+        if hasInternet && isFirstLaunch {
+            self.fetchFromNetwork { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        UserDefaults.standard.isFirstLaunch = false
+                        completion(result)
+                    case .failure:
+                        self.fetchFromCoreData(completion: completion)
+                    }
+                }
+            }
         } else {
-            fetchFromCoreData(completion: completion)
+            self.fetchFromCoreData(completion: completion)
         }
     }
     
@@ -73,13 +85,16 @@ private extension TodoListInteractor {
     
     func fetchFromNetwork(completion: @escaping (Result<[Todo], AppError>) -> ()) {
         apiClient.fetchTodos { [weak self] result in
-            switch result {
-            case .success(let todoList):
-                self?.saveToCoreData(todoList.todos) { _ in
-                    self?.fetchFromCoreData(completion: completion)
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let todoList):
+                    self?.saveToCoreData(todoList.todos) { _ in
+                        self?.fetchFromCoreData(completion: completion)
+                        completion(.success(todoList.todos))
+                    }
+                case .failure(let error):
+                    completion(.failure(.network(error)))
                 }
-            case .failure(let error):
-                completion(.failure(.network(error)))
             }
         }
     }
