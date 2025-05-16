@@ -20,7 +20,7 @@ protocol ITodoDetailPresenter: AnyObject {
 final class TodoDetailPresenter {
     var interactor: ITodoDetailInteractor
     var router: ITodoDetailRouter
-    var view: ITodoDetailView
+    weak var view: ITodoDetailView?
     var todo: Todo?
     var output: TodoListModuleInput
     var isNewTodo: Bool
@@ -48,13 +48,11 @@ extension TodoDetailPresenter: ITodoDetailPresenter {
     func editTodo(title: String?, body: String?) {
         guard let id = self.todo?.id else { return }
         interactor.editTodo(id: id, title: title, body: body) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let updatedTodo):
-                    self?.output.refreshUpdatedTodo(todo: updatedTodo)
-                case .failure(let error):
-                    self?.view.showError(title: error.alertTitle, message: error.alertMessage)
-                }
+            switch result {
+            case .success(let updatedTodo):
+                self?.output.refreshUpdatedTodo(todo: updatedTodo)
+            case .failure(let error):
+                self?.view?.showError(title: error.alertTitle, message: error.alertMessage)
             }
         }
     }

@@ -31,11 +31,9 @@ final class TodoListPresenter {
 extension TodoListPresenter: ITodoListPresenter {
     func loadTodos() {
         self.view?.showLoading(true)
-        
         interactor.fetchTodoList { [weak self] result in
             guard let self = self else { return }
             self.view?.showLoading(false)
-            
             switch result {
             case .success(let todoList):
                 self.view?.showTodoList(todoList)
@@ -69,13 +67,11 @@ extension TodoListPresenter: ITodoListPresenter {
     
     func searchTodo(searchText: String) {
         self.interactor.searchTodo(with: searchText) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let todos):
-                    self?.view?.showSearchResults(todos)
-                case .failure(let error):
-                    self?.view?.showError(title: error.alertTitle, message: error.alertMessage)
-                }
+            switch result {
+            case .success(let todos):
+                self?.view?.showSearchResults(todos)
+            case .failure(let error):
+                self?.view?.showError(title: error.alertTitle, message: error.alertMessage)
             }
         }
     }
@@ -90,13 +86,11 @@ extension TodoListPresenter: TodoListModuleInput {
     
     func addNewTodo(title: String?, body: String?) {
         interactor.addTodo(title: title, body: body) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let savedTodo):
-                    self?.view?.addNewTodo(todo: savedTodo)
-                case .failure(let error):
-                    self?.view?.showError(title: error.alertTitle, message: error.alertMessage)
-                }
+            switch result {
+            case .success(let savedTodo):
+                self?.view?.addNewTodo(todo: savedTodo)
+            case .failure(let error):
+                self?.view?.showError(title: error.alertTitle, message: error.alertMessage)
             }
         }
     }

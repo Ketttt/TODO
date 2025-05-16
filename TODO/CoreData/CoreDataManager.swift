@@ -83,7 +83,9 @@ extension CoreDataManager: CoreDataManagerProtocol {
             do {
                 let todos = try self.context.fetch(fetchRequest)
                 guard let todo = todos.first else {
-                    completion(.failure(.objectNotFound(id: todoId)))
+                    DispatchQueue.main.async {
+                        completion(.failure(.objectNotFound(id: todoId)))
+                    }
                     return
                 }
                 todo.completed.toggle()
@@ -107,7 +109,9 @@ extension CoreDataManager: CoreDataManagerProtocol {
             
             do {
                 guard let todoEntity = try self.context.fetch(fetchRequest).first else {
-                    completion(.failure(.objectNotFound(id: todoId)))
+                    DispatchQueue.main.async {
+                        completion(.failure(.objectNotFound(id: todoId)))
+                    }
                     return
                 }
                 
@@ -176,7 +180,9 @@ extension CoreDataManager: CoreDataManagerProtocol {
             do {
                 let todos = try self.context.fetch(fetchRequest)
                 guard let editTodo = todos.first else {
-                    completion(.failure(.objectNotFound(id: id)))
+                    DispatchQueue.main.async {
+                        completion(.failure(.objectNotFound(id: id)))
+                    }
                     return
                 }
                 editTodo.todoTitle = title

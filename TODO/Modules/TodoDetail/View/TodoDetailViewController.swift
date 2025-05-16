@@ -8,7 +8,7 @@
 import UIKit
 
 //MARK: - ITodoDetailView
-protocol ITodoDetailView {
+protocol ITodoDetailView: AnyObject {
     func showError(title: String, message: String)
 }
 
