@@ -8,7 +8,7 @@
 import UIKit
 import Foundation
 
-protocol TodoListModuleInput {
+protocol TodoListModuleInput: AnyObject {
     func refreshUpdatedTodo(todo: Todo)
     func addNewTodo(title: String?, body: String?)
 }

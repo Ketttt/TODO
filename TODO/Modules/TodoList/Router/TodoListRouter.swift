@@ -13,7 +13,7 @@ protocol ITodoListRouter: AnyObject {
 
 final class TodoListRouter {
     
-    var viewController: UIViewController?
+    weak var viewController: UIViewController?
     
     init(_ nav: UIViewController?) {
         self.viewController = nav

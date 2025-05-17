@@ -7,13 +7,13 @@
 
 import UIKit
 
-protocol ITodoDetailRouter {
+protocol ITodoDetailRouter: AnyObject {
     func popToToDoList()
 }
 
 final class TodoDetailRouter {
     
-    var viewController: UIViewController?
+    weak var viewController: UIViewController?
     
     init(_ nav: UIViewController?) {
         self.viewController = nav
